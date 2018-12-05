@@ -2,12 +2,12 @@ package generators
 
 import java.nio.file.{Files, Path, Paths}
 
-import input.FileDescription
+import generators.tokens.TokenGenerator
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import parser.{InputLexer, InputParser}
 import utils.IOUtils
 
-class DescriptionReader(pathToGrammarFile: Path, pathToDir: Path) {
+class Generator(pathToGrammarFile: Path, pathToDir: Path) {
   private def getGrammarName = {
     val filename = pathToGrammarFile.getFileName.toString
     if (filename.contains(".")) {
@@ -19,21 +19,24 @@ class DescriptionReader(pathToGrammarFile: Path, pathToDir: Path) {
   }
 
   val grammarName: String = getGrammarName
-  val tokensName: String = grammarName + "Tokens"
 
-  def getFileDescription(): FileDescription = {
+  def generate() = {
     IOUtils.using(Files.newInputStream(pathToGrammarFile)) { stream =>
       val charStream = CharStreams.fromStream(stream)
       val lexer = new InputLexer(charStream)
       val tokens = new CommonTokenStream(lexer)
       val parser = new InputParser(tokens)
-      parser.inputfile().desc
+      val description = parser.inputfile().desc
+      val tokensInfo = TokenGenerator.createTokens(description.tokensHolder, grammarName)
+      println(tokensInfo.mainTokenDescription)
+      println(tokensInfo.tokensDescription)
+      println(tokensInfo.regexps)
     }
   }
 }
 
-object DescriptionReader {
+object Generator {
   def main(args: Array[String]): Unit = {
-    println(new DescriptionReader(Paths.get("input.txt"), Paths.get("generated")).getFileDescription())
+    new Generator(Paths.get("Input.txt"), Paths.get("src/java/generated")).generate()
   }
 }

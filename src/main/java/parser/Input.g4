@@ -11,9 +11,11 @@ import utils.ScalaUtils;
 }
 
 inputfile returns [FileDescription desc] :
-    'header'
-        JAVA
-
+    'lexer_header'
+        lexerheader=JAVA
+    'parser_header'
+        parserheader=JAVA
+    
     'tokens' '['
         tokensfromfile=tokenslist
     ']'
@@ -22,9 +24,11 @@ inputfile returns [FileDescription desc] :
         tokenstoskip=skiplist
     ']'
     {
-        String javaText = $JAVA.text;
+        String lexerJava = $lexerheader.text;
+        String parserJava = $parserheader.text;
         $desc = new FileDescription(
-            new Header(javaText.substring(1, javaText.length() - 1)),
+            new Header(lexerJava.substring(1, lexerJava.length() - 1)),
+            new Header(parserJava.substring(1, parserJava.length() - 1)),
             $tokensfromfile.holder,
             $tokenstoskip.holder
         );
@@ -108,4 +112,5 @@ token returns [TokenHolder holder] :
 WS : [ \n\t\r]+ -> skip;
 JAVA : '{' (~[{}]+ JAVA?)* '}';
 TOKEN_NAME : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'0'..'9')*;
-TOKEN_REGEXP : ('a'..'z'|'A'..'Z'|'0'..'9'|'+'|'*'|'?')+;
+// TODO: дать возможность указать \"
+TOKEN_REGEXP : '"'(~["])*'"';
