@@ -11,23 +11,68 @@ import utils.ScalaUtils;
 }
 
 inputfile returns [FileDescription desc] :
-    HEADER LEFT_BRACKET
-        headercode=javacode
-    RIGHT_BRACKET
+    'header'
+        JAVA
 
-    TOKENS LEFT_BRACKET
+    'tokens' '['
         tokensfromfile=tokenslist
-    RIGHT_BRACKET
+    ']'
+
+    'skip' '['
+        tokenstoskip=skiplist
+    ']'
     {
-        $desc = new FileDescription(new Header($headercode.code), $tokensfromfile.holder);
+        String javaText = $JAVA.text;
+        $desc = new FileDescription(
+            new Header(javaText.substring(1, javaText.length() - 1)),
+            $tokensfromfile.holder,
+            $tokenstoskip.holder
+        );
+    }
+;
+
+skiplist returns [SkipTokensHolder holder] :
+    currentskip=skiptoken ';' skiptail=skiplist
+    {
+            $holder = new SkipTokensHolder(
+                ScalaUtils.<String>appendToList(
+                    $skiptail.holder.tokens(),
+                    $currentskip.holder.token()
+                )
+            );
+    }
+
+    | currentskip = skiptoken
+    {
+        $holder = new SkipTokensHolder(
+            ScalaUtils.<String>singleElementList(
+                $currentskip.holder.token()
+            )
+        );
+    }
+
+    |
+    {
+        $holder = new SkipTokensHolder(
+            ScalaUtils.<String>emptyList()
+        );
+    }
+;
+
+skiptoken returns [SkipTokenHolder holder] :
+    TOKEN_NAME
+    {
+        $holder = new SkipTokenHolder(
+            $TOKEN_NAME.text
+        );
     }
 ;
 
 tokenslist returns [TokensHolder holder] :
-    currenttoken=token SEMI tokenslisttail=tokenslist
+    currenttoken=token ';' tokenslisttail=tokenslist
     {
         $holder = new TokensHolder(
-            ScalaUtils.appendToList(
+            ScalaUtils.appendTupleToList(
                 $tokenslisttail.holder.tokens(),
                 $currenttoken.holder.name(),
                 $currenttoken.holder.regexp()
@@ -38,7 +83,7 @@ tokenslist returns [TokensHolder holder] :
     | currenttoken=token
     {
         $holder = new TokensHolder(
-            ScalaUtils.singleElementList(
+            ScalaUtils.singleTupleList(
                 $currenttoken.holder.name(),
                 $currenttoken.holder.regexp()
             )
@@ -48,32 +93,19 @@ tokenslist returns [TokensHolder holder] :
     |
     {
         $holder = new TokensHolder(
-            ScalaUtils.emptyList()
+            ScalaUtils.emptyTupleList()
         );
     }
 ;
 
 token returns [TokenHolder holder] :
-    TOKEN_NAME EQ TOKEN_REGEXP
+    TOKEN_NAME '=' TOKEN_REGEXP
     {
         $holder = new TokenHolder($TOKEN_NAME.text, $TOKEN_REGEXP.text);
     }
 ;
 
-javacode returns [String code] :
-    JAVA
-    {
-        $code = $JAVA.text;
-    }
-;
-
 WS : [ \n\t\r]+ -> skip;
-JAVA : 'hh';
-LEFT_BRACKET : '{';
-RIGHT_BRACKET : '}';
-HEADER : 'header';
-TOKENS : 'tokens';
-SEMI : ';';
+JAVA : '{' (~[{}]+ JAVA?)* '}';
 TOKEN_NAME : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'0'..'9')*;
-TOKEN_REGEXP : ('a'..'z'|'A'..'Z'|'0'..'9'|'+'|'*')+;
-EQ : '=';
+TOKEN_REGEXP : ('a'..'z'|'A'..'Z'|'0'..'9'|'+'|'*'|'?')+;

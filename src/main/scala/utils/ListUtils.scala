@@ -1,11 +1,19 @@
 package utils
 
 object ListUtils {
-  def append(list: List[(String, String)], key: String, value: String): List[(String, String)] = {
+  def appendTuple(list: List[(String, String)], key: String, value: String): List[(String, String)] = {
     (key, value) :: list
   }
 
-  def singleElementList(key: String, value: String): List[(String, String)] = append(Nil, key, value)
+  def singleTupleList(key: String, value: String): List[(String, String)] = appendTuple(Nil, key, value)
 
-  def getEmptyList: List[(String, String)] = Nil
+  def getEmptyTupleList: List[(String, String)] = Nil
+
+  def appendToList[T](list: List[T], elem: T): List[T] = {
+    elem :: list
+  }
+
+  def singleElementList[T](elem: T): List[T] = appendToList(Nil, elem)
+
+  def getEmptyList[T]: List[T] = Nil
 }
