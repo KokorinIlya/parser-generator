@@ -12,7 +12,7 @@ object TokenGenerator {
     val mainTokenDescription = s"sealed trait $mainTokenName extends runtime.TextHolder"
     val tokensDescriptions = for ((tokenName, _) <- tokens) yield {
       val tokenClassName = s"$grammarName$tokenName"
-      s"case class $tokenClassName(override val text: String) extedns $mainTokenName"
+      s"case class $tokenClassName(override val text: String) extends $mainTokenName"
     }
     val regexps = tokens.map {
       case (tokenName, tokenRegexp) => (tokenName, Pattern.compile(tokenRegexp))
