@@ -30,9 +30,9 @@ inputfile returns [FileDescription desc] :
         String lexerJava = $lexerheader.text;
         String parserJava = $parserheader.text;
         $desc = new FileDescription(
-            new Header(tokensJava.substring(1, tokensJava.length() - 1)),
-            new Header(lexerJava.substring(1, lexerJava.length() - 1)),
-            new Header(parserJava.substring(1, parserJava.length() - 1)),
+            new Header(tokensJava.substring(2, tokensJava.length() - 1)),
+            new Header(lexerJava.substring(2, lexerJava.length() - 1)),
+            new Header(parserJava.substring(2, parserJava.length() - 1)),
             $tokensfromfile.holder,
             $tokenstoskip.holder
         );

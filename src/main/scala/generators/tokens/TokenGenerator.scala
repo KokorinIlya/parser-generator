@@ -1,14 +1,16 @@
 package generators.tokens
 
-import java.nio.file.Path
 import java.util.regex.Pattern
 
-import input.{Header, TokensHolder}
+import input.TokensHolder
 
 object TokenGenerator {
   def createTokens(tokensHolder: TokensHolder, grammarName: String): TokensInfo = {
-    val tokens = tokensHolder.tokens
     val mainTokenName = s"Abstract${grammarName}Token"
+    val eofTokenDescription = s"case object ${grammarName}Eof extends $mainTokenName {\n" +
+      "\toverride val text: String = \"EOF\"\n" +
+    "}"
+    val tokens = tokensHolder.tokens
     val mainTokenDescription = s"sealed trait $mainTokenName extends runtime.TextHolder"
     val tokensDescriptions = for ((tokenName, _) <- tokens) yield {
       val tokenClassName = s"$grammarName$tokenName"
@@ -16,7 +18,7 @@ object TokenGenerator {
     }
     val regexps = tokens.map {
       case (tokenName, tokenRegexp) => (tokenName, Pattern.compile(tokenRegexp))
-    }.toMap
-    TokensInfo(mainTokenName, mainTokenDescription, tokensDescriptions, regexps)
+    }
+    TokensInfo(mainTokenName, mainTokenDescription, eofTokenDescription :: tokensDescriptions, regexps)
   }
 }
