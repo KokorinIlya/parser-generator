@@ -2,7 +2,7 @@ package generators
 
 import java.nio.file.{Files, Path, Paths}
 
-import generators.tokens.{TokenGenerator, TokensWriter}
+import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
 import input.{Header, TokensHolder}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import parser.{InputLexer, InputParser}
@@ -21,9 +21,14 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
   val grammarName: String = getGrammarName
 
-  private def generateTokens(tokensHolder: TokensHolder, lexerHeader: Header){
+  private def generateTokens(tokensHolder: TokensHolder, lexerHeader: Header) = {
     val tokensInfo = TokenGenerator.createTokens(tokensHolder, grammarName)
     TokensWriter.writeTokens(pathToScalaDir.resolve(s"${grammarName}Tokens.scala"), tokensInfo, lexerHeader)
+    tokensInfo
+  }
+
+  private def generateLexer(tokensInfo: TokensInfo) = {
+    
   }
 
   def generate() = {
@@ -35,7 +40,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val description = parser.inputfile().desc
 
       Files.createDirectories(pathToScalaDir)
-      generateTokens(description.tokensHolder, description.tokensHeader)
+      val tokensInfo = generateTokens(description.tokensHolder, description.tokensHeader)
     }
   }
 }
