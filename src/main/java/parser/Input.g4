@@ -11,10 +11,8 @@ import utils.ScalaUtils;
 }
 
 inputfile returns [FileDescription desc] :
-    'lexer_header'
-        lexerheader=JAVA
-    'parser_header'
-        parserheader=JAVA
+    'header'
+        header=JAVA
     
     'tokens' '['
         tokensfromfile=tokenslist
@@ -24,11 +22,9 @@ inputfile returns [FileDescription desc] :
         tokenstoskip=skiplist
     ']'
     {
-        String lexerJava = $lexerheader.text;
-        String parserJava = $parserheader.text;
+        String headerJava = $header.text;
         $desc = new FileDescription(
-            new Header(lexerJava.substring(2, lexerJava.length() - 1)),
-            new Header(parserJava.substring(2, parserJava.length() - 1)),
+            new Header(headerJava.substring(2, headerJava.length() - 1)),
             $tokensfromfile.holder,
             $tokenstoskip.holder
         );

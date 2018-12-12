@@ -13,8 +13,7 @@ object TokensHolder {
 
 case class Header(header: String) extends GrammarSpecification
 
-case class FileDescription(lexerHeader: Header,
-                           parserHeader: Header,
+case class FileDescription(header: Header,
                            tokensHolder: TokensHolder,
                            skipTokensHolder: SkipTokensHolder) extends GrammarSpecification
 

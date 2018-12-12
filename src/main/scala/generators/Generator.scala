@@ -2,7 +2,7 @@ package generators
 
 import java.nio.file.{Files, Path, Paths}
 
-import generators.lexer.LexerGenerator
+import generators.lexer.{LexerGenerator, LexerWriter}
 import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
 import input.{Header, SkipTokensHolder, TokensHolder}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
@@ -22,14 +22,15 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
   val grammarName: String = getGrammarName
 
-  private def generateTokens(tokensHolder: TokensHolder, lexerHeader: Header) = {
+  private def generateTokens(tokensHolder: TokensHolder, header: Header) = {
     val tokensInfo = TokenGenerator.createTokens(tokensHolder, grammarName)
-    TokensWriter.writeTokens(pathToScalaDir.resolve(s"${grammarName}Tokens.scala"), tokensInfo, lexerHeader)
+    TokensWriter.writeTokens(pathToScalaDir.resolve(s"${grammarName}Tokens.scala"), tokensInfo, header)
     tokensInfo
   }
 
-  private def generateLexer(tokensInfo: TokensInfo, skipTokensHolder: SkipTokensHolder, lexerHeader: Header) = {
-    LexerGenerator.createLexer(tokensInfo, skipTokensHolder, grammarName, lexerHeader)
+  private def generateLexer(tokensInfo: TokensInfo, skipTokensHolder: SkipTokensHolder, header: Header) {
+    val lexerText = LexerGenerator.createLexer(tokensInfo, skipTokensHolder, grammarName, header)
+    LexerWriter.writeLexer(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
   }
 
   def generate() = {
@@ -41,9 +42,9 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val description = parser.inputfile().desc
 
       Files.createDirectories(pathToScalaDir)
-      val tokensInfo = generateTokens(description.tokensHolder, description.lexerHeader)
+      val tokensInfo = generateTokens(description.tokensHolder, description.header)
 
-      generateLexer(tokensInfo, description.skipTokensHolder, description.lexerHeader)
+      generateLexer(tokensInfo, description.skipTokensHolder, description.header)
     }
   }
 }
