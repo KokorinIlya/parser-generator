@@ -16,14 +16,14 @@ trait AbstractLexer[T <: TextHolder] {
 
   protected val skip: Set[String]
 
-  protected val eofTokenName: String
+  protected def createEof: T
 
-  protected def nameToToken(name: String): T
+  protected def nameToToken(name: String, content: String): T
 
   @tailrec
   private def findNextToken(): T = {
     if (!scanner.hasNextLine) {
-      nameToToken(eofTokenName)
+      createEof
     } else {
       val (nextTokenName, nextTokenRegexp) = nameToRegex.find { case (_, tokenRegexp) =>
         scanner.hasNext(tokenRegexp)
@@ -31,7 +31,8 @@ trait AbstractLexer[T <: TextHolder] {
         throw new LexingException("Next token not found")
       }
       if (!skip.contains(nextTokenName)) {
-        nameToToken(nextTokenName)
+        val nextText = scanner.next(nextTokenRegexp)
+        nameToToken(nextTokenName, nextText)
       } else {
         findNextToken()
       }
@@ -42,6 +43,7 @@ trait AbstractLexer[T <: TextHolder] {
   def nextToken(): T = Try {
     findNextToken()
   } match {
+    case Failure(exception) if exception.isInstanceOf[LexingException] => throw exception
     case Failure(exception) => throw new LexingException(exception)
     case Success(value) => value
   }

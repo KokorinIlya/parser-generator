@@ -7,7 +7,8 @@ import input.TokensHolder
 object TokenGenerator {
   def createTokens(tokensHolder: TokensHolder, grammarName: String): TokensInfo = {
     val mainTokenName = s"Abstract${grammarName}Token"
-    val eofTokenDescription = s"case object ${grammarName}Eof extends $mainTokenName {\n" +
+    val eofTokenName = s"${grammarName}Eof"
+    val eofTokenDescription = s"case object $eofTokenName extends $mainTokenName {\n" +
       "\toverride val text: String = \"EOF\"\n" +
     "}"
     val tokens = tokensHolder.tokens
@@ -19,6 +20,6 @@ object TokenGenerator {
     val regexps = tokens.map {
       case (tokenName, tokenRegexp) => (tokenName, Pattern.compile(tokenRegexp))
     }
-    TokensInfo(mainTokenName, mainTokenDescription, eofTokenDescription :: tokensDescriptions, regexps)
+    TokensInfo(mainTokenName, mainTokenDescription, eofTokenDescription :: tokensDescriptions, regexps, eofTokenName)
   }
 }
