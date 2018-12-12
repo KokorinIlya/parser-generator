@@ -2,6 +2,7 @@ package generators
 
 import java.nio.file.{Files, Path, Paths}
 
+import generators.lexer.LexerGenerator
 import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
 import input.{Header, SkipTokensHolder, TokensHolder}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
@@ -27,8 +28,8 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
     tokensInfo
   }
 
-  private def generateLexer(tokensInfo: TokensInfo, skipTokensHolder: SkipTokensHolder) = {
-
+  private def generateLexer(tokensInfo: TokensInfo, skipTokensHolder: SkipTokensHolder, lexerHeader: Header) = {
+    LexerGenerator.createLexer(tokensInfo, skipTokensHolder, grammarName, lexerHeader)
   }
 
   def generate() = {
@@ -41,6 +42,8 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
       Files.createDirectories(pathToScalaDir)
       val tokensInfo = generateTokens(description.tokensHolder, description.lexerHeader)
+
+      generateLexer(tokensInfo, description.skipTokensHolder, description.lexerHeader)
     }
   }
 }
