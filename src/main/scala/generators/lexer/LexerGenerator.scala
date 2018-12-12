@@ -20,11 +20,11 @@ object LexerGenerator {
     }.mkString(",\n\t\t")
     val setWithSkipTokens = s"Set(\n$skipTokens\n\t)"
 
-    val cases = "\t\t" + tokensInfo.regexps.map { case (name, _) =>
+    val cases = "\t\t\t" + tokensInfo.regexps.map { case (name, _) =>
       val curTokenName = "\"" + s"$grammarName$name" + "\""
       s"case $curTokenName => $grammarName$name(content)"
-    }.mkString("\n\t\t")
-    val matcher = s"name match {\n$cases\n\t}"
+    }.mkString("\n\t\t\t")
+    val matcher = s"name match {\n$cases\n\t\t}"
 
     s"""${header.header}
       |
