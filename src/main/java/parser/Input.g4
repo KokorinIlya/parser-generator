@@ -143,7 +143,7 @@ rulealternativesmaybenull returns [AlternativesHolder holder] :
 alternative returns [RuleBody body] :
     currentcode=maybecoderule curassignment=assignmentrule alternativetail=alternative
     {
-        RuleBodyEntry curEntry = new RuleBodyEntry(
+        RuleBodyEntry curEntry = new OrdinaryRuleBodyEntry(
             $currentcode.holder,
             $curassignment.ass
         );
@@ -157,6 +157,22 @@ alternative returns [RuleBody body] :
             curEntries,
             $alternativetail.body.resultCode()
         );
+    }
+
+    | currentcode=maybecoderule 'eps' resultcode=maybecoderule
+    {
+     RuleBodyEntry curEntry = new EpsilonRuleBodyEntry(
+         $currentcode.holder
+     );
+     BodyEntries curEntries = new BodyEntries(
+         ScalaUtils.<RuleBodyEntry>appendToList(
+             curEntry
+         )
+     );
+     $body = new RuleBody(
+         curEntries,
+         $resultcode.holder
+     );
     }
 
     | currentcode=maybecoderule

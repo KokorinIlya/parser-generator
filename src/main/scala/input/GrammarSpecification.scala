@@ -37,7 +37,14 @@ case class ArgumentsHolder(arguments: List[String])
 
 case class CodeHolder(code: Option[String])
 
-case class RuleBodyEntry(codeHolder: CodeHolder, assignment: Assignment)
+sealed trait RuleBodyEntry {
+  val codeHolder: CodeHolder
+}
+
+case class OrdinaryRuleBodyEntry(override val codeHolder: CodeHolder,
+                                 assignment: Assignment) extends RuleBodyEntry
+
+case class EpsilonRuleBodyEntry(override val codeHolder: CodeHolder) extends RuleBodyEntry
 
 case class BodyEntries(entries: List[RuleBodyEntry])
 
