@@ -45,6 +45,8 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val tokensInfo = generateTokens(description.tokensHolder, description.header)
 
       generateLexer(tokensInfo, description.skipTokensHolder, description.header)
+
+      println(description.rulesHolder)
     }
   }
 }

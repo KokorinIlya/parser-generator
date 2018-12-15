@@ -1,5 +1,6 @@
 package utils;
 
+import scala.Option;
 import scala.Tuple2;
 import scala.collection.immutable.List;
 
@@ -27,5 +28,13 @@ public class ScalaUtils {
 
     public static<T> List<T> emptyList() {
         return ListUtils.<T>getEmptyList();
+    }
+
+    public static<T> Option<T> emptyOption() {
+        return Option.empty();
+    }
+
+    public static<T> Option<T> fullOption(T x) {
+        return Option.apply(x);
     }
 }

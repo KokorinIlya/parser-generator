@@ -34,6 +34,7 @@ trait AbstractLexer[T <: TextHolder] {
         val nextText = scanner.next(nextTokenRegexp)
         nameToToken(nextTokenName, nextText)
       } else {
+        scanner.next(nextTokenRegexp)
         findNextToken()
       }
     }
