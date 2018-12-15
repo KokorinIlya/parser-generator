@@ -4,7 +4,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import generators.lexer.{LexerGenerator, LexerWriter}
 import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
-import input.{Header, SkipTokensHolder, TokensHolder}
+import input.{Header, RulesHolder, SkipTokensHolder, TokensHolder}
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import parser.{InputLexer, InputParser}
 import utils.IOUtils
@@ -33,6 +33,10 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
     LexerWriter.writeLexer(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
   }
 
+  def generateParser(rulesHolder: RulesHolder) = {
+
+  }
+
   def generate() = {
     IOUtils.using(Files.newInputStream(pathToGrammarFile)) { stream =>
       val charStream = CharStreams.fromStream(stream)
@@ -45,8 +49,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val tokensInfo = generateTokens(description.tokensHolder, description.header)
 
       generateLexer(tokensInfo, description.skipTokensHolder, description.header)
-
-      println(description.rulesHolder)
+      generateParser(description.rulesHolder)
     }
   }
 }
