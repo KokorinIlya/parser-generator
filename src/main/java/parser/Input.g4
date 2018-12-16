@@ -59,6 +59,7 @@ parserrule returns [Rule bnfRule] :
     rulename=NAME '(' curparams=parametersrule ')' '->' result=parameterrule '::' '=' curalternatives=rulealternatives
     {
         $bnfRule = new Rule(
+            $rulename.text,
             $curalternatives.holder,
             $curparams.holder,
             $result.param
@@ -165,7 +166,7 @@ alternative returns [RuleBody body] :
          $currentcode.holder
      );
      BodyEntries curEntries = new BodyEntries(
-         ScalaUtils.<RuleBodyEntry>appendToList(
+         ScalaUtils.<RuleBodyEntry>singleElementList(
              curEntry
          )
      );

@@ -3,11 +3,14 @@ package generators
 import java.nio.file.{Files, Path, Paths}
 
 import generators.lexer.{LexerGenerator, LexerWriter}
+import generators.syntax._
 import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
-import input.{Header, RulesHolder, SkipTokensHolder, TokensHolder}
+import input._
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import parser.{InputLexer, InputParser}
 import utils.IOUtils
+
+import scala.collection.mutable
 
 class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Path) {
   private def getGrammarName = {
@@ -33,8 +36,61 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
     LexerWriter.writeLexer(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
   }
 
-  def generateParser(rulesHolder: RulesHolder) = {
+  private def calculateFirst(rules: Map[NonTerminal, List[Entry]]) = {
+    /*
+    first : нетерминалы -> подмножество терминальных символов и 'eps'
+     */
+    val first = mutable.Map[NonTerminal, Set[FirstEntry]]()
 
+    def getFirst(ruleBody: List[Entry]): Set[FirstEntry] = {
+      ruleBody match {
+        case Nil => Set(Epsilon)
+        case head :: tail => head match {
+          case Epsilon => Set(Epsilon)
+          case term@Terminal(_) => Set(term)
+          case nterm@NonTerminal(_) =>
+            val firstSet = first.getOrElse(nterm, Set())
+            (firstSet - Epsilon) ++ getFirst(tail)
+        }
+      }
+    }
+
+    var changed = true
+
+    while (changed) {
+      changed = false
+      for ((nterm, ruleBody) <- rules) {
+        val prevSet = first.getOrElse(nterm, Set())
+        val newSet = prevSet ++ getFirst(ruleBody)
+        if (newSet != prevSet) {
+          changed = true
+          first.update(nterm, newSet)
+        }
+      }
+    }
+    first.toMap
+  }
+
+  private def generateParser(rulesHolder: RulesHolder) = {
+    /*
+    Список правил вывода вида A -> entry1 entry2
+     */
+    val theoryRules = rulesHolder.rules.flatMap { rule =>
+      rule.alternatives.alternatives.map { alternative =>
+        val nterm = NonTerminal(rule.name)
+        val rightSide = alternative.entries.entries.map {
+          case OrdinaryRuleBodyEntry(codeHolder, assignment) =>
+            assignment match {
+              case TokenAssignment(variableName, grammarEntryName) => Terminal(grammarEntryName)
+              case RuleAssignment(variableName, grammarEntryName, arguments) => NonTerminal(grammarEntryName)
+            }
+          case EpsilonRuleBodyEntry(codeHolder) => Epsilon
+        }
+        (nterm, rightSide)
+      }
+    }.toMap
+
+    val first = calculateFirst(theoryRules)
   }
 
   def generate() = {

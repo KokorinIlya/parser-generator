@@ -92,7 +92,7 @@ parameters - список параметров вида (x1: T1, x2: T2)
 
 result - один параметр вида res: T
  */
-case class Rule(alternatives: AlternativesHolder, parameters: ParametersHolder, result: Parameter)
+case class Rule(name: String, alternatives: AlternativesHolder, parameters: ParametersHolder, result: Parameter)
 
 /*
 список параметров вида (x1: T1, x2: T2)
