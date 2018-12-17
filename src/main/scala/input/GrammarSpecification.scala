@@ -14,6 +14,7 @@ case class Header(header: String)
 case class FileDescription(header: Header,
                            tokensHolder: TokensHolder,
                            skipTokensHolder: SkipTokensHolder,
+                           startRuleName: String,
                            rulesHolder: RulesHolder)
 
 case class TokenHolder(name: TokenName, regexp: TokenRegexp)

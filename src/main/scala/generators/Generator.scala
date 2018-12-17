@@ -36,42 +36,87 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
     LexerWriter.writeLexer(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
   }
 
-  private def calculateFirst(rules: Map[NonTerminal, List[Entry]]) = {
+  private def getFirst(ruleBody: List[Entry], first: Map[NonTerminal, Set[FirstEntry]]): Set[FirstEntry] = {
+    ruleBody match {
+      case Nil => Set(Epsilon)
+      case head :: tail => head match {
+        case Epsilon => Set(Epsilon)
+        case term@Terminal(_) => Set(term)
+        case nterm@NonTerminal(_) =>
+          val firstSet = first.getOrElse(nterm, Set())
+          (firstSet - Epsilon) ++ getFirst(tail, first)
+      }
+    }
+  }
+
+  def calculateFirst(rules: Map[NonTerminal, List[Entry]]): Map[NonTerminal, Set[FirstEntry]] = {
     /*
     first : нетерминалы -> подмножество терминальных символов и 'eps'
      */
     val first = mutable.Map[NonTerminal, Set[FirstEntry]]()
-
-    def getFirst(ruleBody: List[Entry]): Set[FirstEntry] = {
-      ruleBody match {
-        case Nil => Set(Epsilon)
-        case head :: tail => head match {
-          case Epsilon => Set(Epsilon)
-          case term@Terminal(_) => Set(term)
-          case nterm@NonTerminal(_) =>
-            val firstSet = first.getOrElse(nterm, Set())
-            (firstSet - Epsilon) ++ getFirst(tail)
-        }
-      }
-    }
-
     var changed = true
 
     while (changed) {
       changed = false
       for ((nterm, ruleBody) <- rules) {
         val prevSet = first.getOrElse(nterm, Set())
-        val newSet = prevSet ++ getFirst(ruleBody)
-        if (newSet != prevSet) {
+        val delta = getFirst(ruleBody, first.toMap)
+        if (!delta.subsetOf(prevSet)) {
           changed = true
-          first.update(nterm, newSet)
         }
+        val newSet = prevSet ++ delta
+        first.update(nterm, newSet)
       }
     }
     first.toMap
   }
 
-  private def generateParser(rulesHolder: RulesHolder) = {
+  def calculateFollow(rules: Map[NonTerminal, List[Entry]], startRule: NonTerminal,
+                              first: Map[NonTerminal, Set[FirstEntry]]): Map[NonTerminal, Set[FollowEntry]] ={
+    val follow = mutable.Map[NonTerminal, Set[FollowEntry]]()
+
+    follow.update(startRule, Set(Dollar))
+    var changed = true
+
+    while (changed) {
+      changed = false
+
+      for {
+        (nterm, rule) <- rules
+        index <- rule.indices
+        b = rule(index)
+        if b.isInstanceOf[NonTerminal]
+        gamma = rule.slice(index + 1, rule.size)
+        // TODO: Empty
+      } {
+        val curNterm = b.asInstanceOf[NonTerminal]
+
+        val curSet = follow.getOrElse(curNterm, Set())
+
+        val firstSet = getFirst(gamma, first.toMap)
+        val withoutEps = (firstSet - Epsilon).map(_.asInstanceOf[FollowEntry])
+        if (!withoutEps.subsetOf(curSet)) {
+          changed = true
+        }
+        val withDelta = curSet ++ withoutEps
+        if (firstSet.contains(Epsilon)) {
+          val aSet = follow.getOrElse(nterm, Set())
+          if (!aSet.subsetOf(withDelta)) {
+            changed = true
+            follow.update(curNterm, withDelta ++ aSet)
+          } else {
+            follow.update(curNterm, withDelta)
+          }
+        } else {
+          follow.update(curNterm, withDelta)
+        }
+      }
+    }
+
+    follow.toMap
+  }
+
+  private def generateParser(rulesHolder: RulesHolder, startRule: NonTerminal) = {
     /*
     Список правил вывода вида A -> entry1 entry2
      */
@@ -91,6 +136,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
     }.toMap
 
     val first = calculateFirst(theoryRules)
+    val follow = calculateFollow(theoryRules, startRule, first)
   }
 
   def generate() = {
@@ -105,17 +151,33 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val tokensInfo = generateTokens(description.tokensHolder, description.header)
 
       generateLexer(tokensInfo, description.skipTokensHolder, description.header)
-      generateParser(description.rulesHolder)
+      generateParser(description.rulesHolder, NonTerminal(description.startRuleName))
     }
   }
 }
 
 object Generator {
   def main(args: Array[String]): Unit = {
-    new Generator(
+    val gen = new Generator(
       Paths.get("Input.txt"),
       Paths.get("src/main/java/generated"),
       Paths.get("src/main/scala/generated")
-    ).generate()
+    )
+    val rules = Map(
+      NonTerminal("S") -> List(
+        Terminal("a"),
+        Terminal("b"),
+        NonTerminal("A")
+      ),
+      NonTerminal("A") -> List(
+        Terminal("b"),
+        Terminal("c")
+      ),
+      NonTerminal("A") -> List(
+        Epsilon
+      )
+    )
+    val first = gen.calculateFirst(rules)
+    println(first)
   }
 }

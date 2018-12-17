@@ -22,6 +22,8 @@ inputfile returns [FileDescription desc] :
         tokenstoskip=skiplist
     ']'
 
+    'start' '=' startnonterminalname=NAME ';'
+
     'rules' '['
         ruleslist=rules
     ']'
@@ -31,6 +33,7 @@ inputfile returns [FileDescription desc] :
             new Header(headerJava.substring(2, headerJava.length() - 1)),
             $tokensfromfile.holder,
             $tokenstoskip.holder,
+            $startnonterminalname.text,
             $ruleslist.holder
         );
     }
