@@ -45,7 +45,6 @@ trait AbstractLexer[T <: TextHolder] {
   def nextToken(): T = Try {
     findNextToken()
   } match {
-    case Failure(exception) if exception.isInstanceOf[LexingException] => throw exception
     case Failure(exception) => throw new LexingException(exception)
     case Success(value) => value
   }
