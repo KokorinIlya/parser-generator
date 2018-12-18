@@ -54,7 +54,7 @@ object ParserGenerator {
                      |""".stripMargin.split("\n").map(s => s"\t\t\t$s").mkString("\n")
 
                 case RuleAssignment(variableName, grammarEntryName, arguments) =>
-                  var argsString = arguments.arguments.mkString(", ")
+                  val argsString = arguments.arguments.mkString(", ")
                   s"\t\t\tvar $variableName = parse$grammarEntryName($argsString)"
               }
 

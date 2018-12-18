@@ -43,10 +43,10 @@ class Generator(pathToGrammarFile: Path, pathToScalaDir: Path) {
       rule.alternatives.alternatives.map { alternative =>
         val nterm = NonTerminal(rule.name)
         val rightSide = alternative.entries.entries.map {
-          case OrdinaryRuleBodyEntry(codeHolder, assignment) =>
+          case OrdinaryRuleBodyEntry(_, assignment) =>
             assignment match {
-              case TokenAssignment(variableName, grammarEntryName) => Terminal(grammarEntryName)
-              case RuleAssignment(variableName, grammarEntryName, arguments) => NonTerminal(grammarEntryName)
+              case TokenAssignment(_, grammarEntryName) => Terminal(grammarEntryName)
+              case RuleAssignment(_, grammarEntryName, _) => NonTerminal(grammarEntryName)
             }
           case EpsilonRuleBodyEntry() => Epsilon
         }
