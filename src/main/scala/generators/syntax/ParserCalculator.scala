@@ -63,10 +63,6 @@ object ParserCalculator {
             case Epsilon => ()
             case term@Terminal(_) =>
               val curFollow = answer.getOrElse(curNterm, Set())
-              if (term == Terminal("LEFTPAR")) {
-                println(s"$curFirst")
-                println(s"$nterm\n $rule\n")
-              }
               answer.update(curNterm, curFollow + term)
           }
         }

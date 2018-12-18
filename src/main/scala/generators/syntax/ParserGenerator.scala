@@ -3,10 +3,8 @@ package generators.syntax
 import input._
 
 object ParserGenerator {
-  def generateParser(rulesHolder: RulesHolder, grammarName: String, first: Map[NonTerminal, Set[FirstEntry]],
+  private def generateMethods(rulesHolder: RulesHolder, grammarName: String, first: Map[NonTerminal, Set[FirstEntry]],
                      follow: Map[NonTerminal, Set[FollowEntry]]) = {
-    println(first)
-    println(follow)
     val methodsDescription = rulesHolder.rules.map { rule =>
       val params = rule.parameters.parameters.map { parameter =>
         s"${parameter.name}: ${parameter.paramType}"
@@ -15,40 +13,62 @@ object ParserGenerator {
       val alternatives = rule.alternatives.alternatives
       val methodName = s"parse${rule.name}"
 
-      val curFirst = first(NonTerminal(rule.name))
       val curFollow = follow(NonTerminal(rule.name))
 
       val alternativesDescription = alternatives.map { currentBody =>
-        val firstEntry = currentBody.entries.entries.head
-        val startString = firstEntry match {
+        val entries = currentBody.entries.entries
+        val firstEntry = entries.head
+        firstEntry match {
           case EpsilonRuleBodyEntry() =>
             val followEntries = curFollow.map {
               case Dollar => s"${grammarName}Eof"
-              case Terminal(name) => s"$grammarName$name"
+              case Terminal(name) => s"$grammarName$name(_)"
             }.mkString(" | ")
 
             val finalCode = currentBody.resultCode.code.getOrElse("")
 
-            s"case $followEntries => $finalCode"
+            s"\tcase $followEntries => \n\t\t\t$finalCode"
 
-          case OrdinaryRuleBodyEntry(codeHolder, assignment) =>
+          case OrdinaryRuleBodyEntry(_, assignment) =>
             val neededFirst= assignment match {
               case TokenAssignment(_, grammarEntryName) => Set(Terminal(grammarEntryName))
               case RuleAssignment(_, grammarEntryName, _) =>
                 (first(NonTerminal(grammarEntryName)) - Epsilon).map(_.asInstanceOf[Terminal])
             }
             val tokensEnumeration = neededFirst.toList.map { token =>
-              s"$grammarName${token.name}"
+              s"$grammarName${token.name}(_)"
             }.mkString(" | ")
-            s"case $tokensEnumeration => ???"
-        }
 
-        startString
+            val actions = entries.map {
+              case x@OrdinaryRuleBodyEntry(_, _) => x
+            }.map { entry =>
+              val assignmentString = entry.assignment match {
+                case TokenAssignment(variableName, grammarEntryName) =>
+                  val errorMessage = "case y => throw new runtime.ParseException(s\"In " + methodName + ", unexpected token $y\")"
+                  s"""var $variableName = curToken match {
+                     |  case x: $grammarName$grammarEntryName => x
+                     |
+                     |  $errorMessage
+                     |}
+                     |curToken = lexer.nextToken()
+                     |""".stripMargin.split("\n").map(s => s"\t\t\t$s").mkString("\n")
+
+                case RuleAssignment(variableName, grammarEntryName, arguments) =>
+                  var argsString = arguments.arguments.mkString(", ")
+                  s"\t\t\tvar $variableName = parse$grammarEntryName($argsString)"
+              }
+
+              "\t\t\t" + entry.codeHolder.code.getOrElse("") + "\n"  + assignmentString
+            }
+
+            val finalCode = actions.mkString("\n") + s"\n\t\t${currentBody.resultCode.code.getOrElse("")}"
+            s"\tcase $tokensEnumeration => \n$finalCode"
+        }
       }
 
       val cases = alternativesDescription.mkString("\n\n\t")
 
-      val errorMessage = "case y => throw new ParseException(s\"In " + methodName + ", unexpected token $y\")"
+      val errorMessage = "case y => throw new runtime.ParseException(s\"In " + methodName + ", unexpected token $y\")"
 
       val methodText =
         s"""def $methodName($params): ${rule.result.paramType} = {
@@ -57,12 +77,29 @@ object ParserGenerator {
           |	curToken match {
           |    $cases
           |
-          |    $errorMessage
+          |        $errorMessage
           |  }
-          |}""".stripMargin
+          |}""".stripMargin.split("\n").map(s => s"\t$s").mkString("\n")
 
       methodText
     }
-    println(methodsDescription)
+    methodsDescription.mkString("\n\n")
+  }
+
+  def generateParser(rulesHolder: RulesHolder, grammarName: String, first: Map[NonTerminal, Set[FirstEntry]],
+                     follow: Map[NonTerminal, Set[FollowEntry]], header: Header): String = {
+    val methods = generateMethods(rulesHolder, grammarName, first, follow)
+
+    s"""${header.header}
+      |
+      |class InputParser(lexer: InputLexer) extends AutoCloseable {
+      |  override def close(): Unit = {
+      |    lexer.close()
+      |  }
+      |
+      |  private var curToken = lexer.nextToken()
+      |
+      |$methods
+      |}""".stripMargin
   }
 }

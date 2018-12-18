@@ -2,17 +2,16 @@ package generators
 
 import java.nio.file.{Files, Path, Paths}
 
-import generators.lexer.{LexerGenerator, LexerWriter}
+import generators.lexer.LexerGenerator
 import generators.syntax._
 import generators.tokens.{TokenGenerator, TokensInfo, TokensWriter}
+import generators.writers.CodeWriter
 import input._
 import org.antlr.v4.runtime.{CharStreams, CommonTokenStream}
 import parser.{InputLexer, InputParser}
 import utils.IOUtils
 
-import scala.collection.mutable
-
-class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Path) {
+class Generator(pathToGrammarFile: Path, pathToScalaDir: Path) {
   private def getGrammarName = {
     val filename = pathToGrammarFile.getFileName.toString
     if (filename.contains(".")) {
@@ -33,10 +32,10 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
   private def generateLexer(tokensInfo: TokensInfo, skipTokensHolder: SkipTokensHolder, header: Header) {
     val lexerText = LexerGenerator.createLexer(tokensInfo, skipTokensHolder, grammarName, header)
-    LexerWriter.writeLexer(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
+    CodeWriter.writeCode(pathToScalaDir.resolve(s"${grammarName}Lexer.scala"), lexerText)
   }
 
-  private def generateParser(rulesHolder: RulesHolder, startRule: NonTerminal) = {
+  private def generateParser(rulesHolder: RulesHolder, startRule: NonTerminal, header: Header){
     /*
     Список правил вывода вида A -> entry1 entry2
      */
@@ -57,10 +56,11 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
     val first = ParserCalculator.calculateFirst(theoryRules)
     val follow = ParserCalculator.calculateFollow(theoryRules, startRule, first)
-    ParserGenerator.generateParser(rulesHolder, grammarName, first, follow)
+    val parserString = ParserGenerator.generateParser(rulesHolder, grammarName, first, follow, header)
+    CodeWriter.writeCode(pathToScalaDir.resolve(s"${grammarName}Parser.scala"), parserString)
   }
 
-  def generate() = {
+  def generate() {
     IOUtils.using(Files.newInputStream(pathToGrammarFile)) { stream =>
       val charStream = CharStreams.fromStream(stream)
       val lexer = new InputLexer(charStream)
@@ -72,7 +72,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
       val tokensInfo = generateTokens(description.tokensHolder, description.header)
 
       generateLexer(tokensInfo, description.skipTokensHolder, description.header)
-      generateParser(description.rulesHolder, NonTerminal(description.startRuleName))
+      generateParser(description.rulesHolder, NonTerminal(description.startRuleName), description.header)
     }
   }
 }
@@ -81,27 +81,8 @@ object Generator {
   def main(args: Array[String]): Unit = {
     val gen = new Generator(
       Paths.get("Input.txt"),
-      Paths.get("src/main/java/generated"),
       Paths.get("src/main/scala/generated")
     )
     gen.generate()
-//    val rules = List(
-//      NonTerminal("S") -> List(
-//        Terminal("a"),
-//        Terminal("b"),
-//        NonTerminal("A")
-//      ),
-//      NonTerminal("A") -> List(
-//        Terminal("b"),
-//        Terminal("c")
-//      ),
-//      NonTerminal("A") -> List(
-//        Epsilon
-//      )
-//    )
-//    val first = gen.calculateFirst(rules)
-//    println(first)
-//    val follow = gen.calculateFollow(rules, NonTerminal("S"), first)
-//    println(follow)
   }
 }
