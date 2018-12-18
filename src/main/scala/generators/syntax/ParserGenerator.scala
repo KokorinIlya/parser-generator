@@ -27,7 +27,7 @@ object ParserGenerator {
 
             val finalCode = currentBody.resultCode.code.getOrElse("")
 
-            s"\tcase $followEntries => \n\t\t\t$finalCode"
+            s"\tcase $followEntries => \n\t\t\t$finalCode\n\t\t\t${rule.result.name}"
 
           case OrdinaryRuleBodyEntry(_, assignment) =>
             val neededFirst= assignment match {
@@ -62,7 +62,7 @@ object ParserGenerator {
             }
 
             val finalCode = actions.mkString("\n") + s"\n\t\t${currentBody.resultCode.code.getOrElse("")}"
-            s"\tcase $tokensEnumeration => \n$finalCode"
+            s"\tcase $tokensEnumeration => \n\t$finalCode\n\t${rule.result.name}"
         }
       }
 
