@@ -31,7 +31,7 @@ object LexerGenerator {
       |import java.io.InputStream
       |import java.util.regex.Pattern
       |
-      |class $lexerName(override val inputStream: InputStream) extends runtime.AbstractLexer[${tokensInfo.mainTokenName}] {
+      |class $lexerName(override val inputStream: InputStream) extends runtime.AbstractLexer[${tokensInfo.mainTokenName}] with AutoCloseable {
       |  override protected def createEof: ${tokensInfo.mainTokenName} = ${grammarName}Eof
       |
       |  override protected val nameToRegex: List[(String, Pattern)] = $listWithRegexps
@@ -41,6 +41,10 @@ object LexerGenerator {
       |  override protected def nameToToken(name: String, content: String): AbstractInputToken = {
       |    $matcher
       |  }
+      |
+      |  override def close(): Unit = {
+      |		inputStream.close()
+      |	}
       |}""".stripMargin
   }
 }
