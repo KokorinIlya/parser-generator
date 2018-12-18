@@ -28,9 +28,10 @@ inputfile returns [FileDescription desc] :
         ruleslist=rules
     ']'
     {
-        String headerJava = $header.text.trim();
+        String headerJava = $header.text;
+        String finalString = headerJava.substring(1, headerJava.length() - 1).trim();
         $desc = new FileDescription(
-            new Header(headerJava.substring(2, headerJava.length() - 1)),
+            new Header(finalString),
             $tokensfromfile.holder,
             $tokenstoskip.holder,
             $startnonterminalname.text,
@@ -163,14 +164,11 @@ alternative returns [RuleBody body] :
         );
     }
 
-    | currentcode=maybecoderule 'eps' resultcode=maybecoderule
+    | 'eps' resultcode=maybecoderule
     {
-     RuleBodyEntry curEntry = new EpsilonRuleBodyEntry(
-         $currentcode.holder
-     );
      BodyEntries curEntries = new BodyEntries(
          ScalaUtils.<RuleBodyEntry>singleElementList(
-             curEntry
+             new EpsilonRuleBodyEntry()
          )
      );
      $body = new RuleBody(
@@ -248,8 +246,10 @@ argumentslistrule returns [ArgumentsHolder holder] :
 maybecoderule returns [CodeHolder holder] :
     code=JAVA
     {
+        String javaCode = $code.text;
+        String finalCode = javaCode.substring(1, javaCode.length() - 1).trim();
         $holder = new CodeHolder(
-            ScalaUtils.<String>fullOption($code.text)
+            ScalaUtils.<String>fullOption(finalCode)
         );
     }
 

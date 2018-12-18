@@ -49,7 +49,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
               case TokenAssignment(variableName, grammarEntryName) => Terminal(grammarEntryName)
               case RuleAssignment(variableName, grammarEntryName, arguments) => NonTerminal(grammarEntryName)
             }
-          case EpsilonRuleBodyEntry(codeHolder) => Epsilon
+          case EpsilonRuleBodyEntry() => Epsilon
         }
         (nterm, rightSide)
       }
@@ -57,7 +57,7 @@ class Generator(pathToGrammarFile: Path, pathToJavaDir: Path, pathToScalaDir: Pa
 
     val first = ParserCalculator.calculateFirst(theoryRules)
     val follow = ParserCalculator.calculateFollow(theoryRules, startRule, first)
-    ParserGenerator.generateParser(rulesHolder, first, follow)
+    ParserGenerator.generateParser(rulesHolder, grammarName, first, follow)
   }
 
   def generate() = {

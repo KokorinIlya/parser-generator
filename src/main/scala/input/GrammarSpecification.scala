@@ -44,22 +44,20 @@ case class ArgumentsHolder(arguments: List[String])
  */
 case class CodeHolder(code: Option[String])
 
-sealed trait RuleBodyEntry {
-  val codeHolder: CodeHolder
-}
+sealed trait RuleBodyEntry
 
 /*
 Обыкновенное правило имеет вид
 {code} a = rule_name(params)
  */
-case class OrdinaryRuleBodyEntry(override val codeHolder: CodeHolder,
+case class OrdinaryRuleBodyEntry(codeHolder: CodeHolder,
                                  assignment: Assignment) extends RuleBodyEntry
 
 /*
-Эпсилон-правило, имеет вид {code} eps,
+Эпсилон-правило, имеет вид eps,
 может быть только единственным в списке BodyEntries.
  */
-case class EpsilonRuleBodyEntry(override val codeHolder: CodeHolder) extends RuleBodyEntry
+case class EpsilonRuleBodyEntry() extends RuleBodyEntry
 
 /*
 Список entry.
