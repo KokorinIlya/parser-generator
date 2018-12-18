@@ -38,7 +38,7 @@ object LexerGenerator {
       |
       |  override protected val skip: Set[String] = $setWithSkipTokens
       |
-      |  override protected def nameToToken(name: String, content: String): AbstractInputToken = {
+      |  override protected def nameToToken(name: String, content: String): Abstract${grammarName}Token = {
       |    $matcher
       |  }
       |

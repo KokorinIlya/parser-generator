@@ -25,17 +25,18 @@ trait AbstractLexer[T <: TextHolder] {
     if (!scanner.hasNextLine) {
       createEof
     } else {
-      val (nextTokenName, nextTokenRegexp) = nameToRegex.find { case (_, tokenRegexp) =>
+      nameToRegex.find { case (_, tokenRegexp) =>
         scanner.hasNext(tokenRegexp)
-      }.getOrElse{
-        throw new LexingException("Next token not found")
-      }
-      if (!skip.contains(nextTokenName)) {
-        val nextText = scanner.next(nextTokenRegexp)
-        nameToToken(nextTokenName, nextText)
-      } else {
-        scanner.next(nextTokenRegexp)
-        findNextToken()
+      } match {
+        case Some((nextTokenName, nextTokenRegexp)) =>
+          if (!skip.contains(nextTokenName)) {
+            val nextText = scanner.next(nextTokenRegexp)
+            nameToToken(nextTokenName, nextText)
+          } else {
+            scanner.next(nextTokenRegexp)
+            findNextToken()
+          }
+        case None => createEof
       }
     }
   }

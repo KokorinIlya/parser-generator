@@ -92,7 +92,7 @@ object ParserGenerator {
 
     s"""${header.header}
       |
-      |class InputParser(lexer: InputLexer) extends AutoCloseable {
+      |class ${grammarName}Parser(lexer: ${grammarName}Lexer) extends AutoCloseable {
       |  override def close(): Unit = {
       |    lexer.close()
       |  }
