@@ -58,11 +58,13 @@ object ParserGenerator {
                   s"\t\t\tvar $variableName = parse$grammarEntryName($argsString)"
               }
 
-              "\t\t\t" + entry.codeHolder.code.getOrElse("") + "\n"  + assignmentString
+              val alignedCode = "\t\t" + entry.codeHolder.code.getOrElse("")
+
+              alignedCode + "\n"  + assignmentString
             }
 
-            val finalCode = actions.mkString("\n") + s"\n\t\t${currentBody.resultCode.code.getOrElse("")}"
-            s"\tcase $tokensEnumeration => \n\t$finalCode\n\t${rule.result.name}"
+            val finalCode = actions.mkString("\n") + s"\n\t\t\t${currentBody.resultCode.code.getOrElse("")}"
+            s"\tcase $tokensEnumeration => \n\t\t$finalCode\n\t\t\t${rule.result.name}"
         }
       }
 
@@ -75,9 +77,9 @@ object ParserGenerator {
           |	var ${rule.result.name}: ${rule.result.paramType} = null
           |
           |	curToken match {
-          |    $cases
+          |   $cases
           |
-          |        $errorMessage
+          |    $errorMessage
           |  }
           |}""".stripMargin.split("\n").map(s => s"\t$s").mkString("\n")
 
