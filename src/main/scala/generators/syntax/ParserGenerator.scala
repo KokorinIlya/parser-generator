@@ -1,6 +1,6 @@
 package generators.syntax
 
-import input.{EpsilonRuleBodyEntry, OrdinaryRuleBodyEntry, RulesHolder}
+import input._
 
 object ParserGenerator {
   def generateParser(rulesHolder: RulesHolder, grammarName: String, first: Map[NonTerminal, Set[FirstEntry]],
@@ -31,12 +31,22 @@ object ParserGenerator {
 
             s"case $followEntries => $finalCode"
 
-          case OrdinaryRuleBodyEntry(codeHolder, assignment) => "FUCK FUCK FUCK"
+          case OrdinaryRuleBodyEntry(codeHolder, assignment) =>
+            val neededFirst= assignment match {
+              case TokenAssignment(_, grammarEntryName) => Set(Terminal(grammarEntryName))
+              case RuleAssignment(_, grammarEntryName, _) =>
+                (first(NonTerminal(grammarEntryName)) - Epsilon).map(_.asInstanceOf[Terminal])
+            }
+            val tokensEnumeration = neededFirst.toList.map { token =>
+              s"$grammarName${token.name}"
+            }.mkString(" | ")
+            s"case $tokensEnumeration => ???"
         }
+
         startString
       }
 
-      val cases = alternativesDescription.mkString("\n\t")
+      val cases = alternativesDescription.mkString("\n\n\t")
 
       val errorMessage = "case y => throw new ParseException(s\"In " + methodName + ", unexpected token $y\")"
 

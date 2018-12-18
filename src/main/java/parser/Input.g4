@@ -338,5 +338,4 @@ token returns [TokenHolder holder] :
 WS : [ \n\t\r]+ -> skip;
 JAVA : '{' (~[{}]+ JAVA?)* '}';
 NAME : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'0'..'9')*;
-// TODO: дать возможность указать \"
 TOKEN_REGEXP : '"'(~["])*'"';

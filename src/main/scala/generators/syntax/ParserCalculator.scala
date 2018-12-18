@@ -14,7 +14,6 @@ object ParserCalculator {
       case (nterm@NonTerminal(_)) :: tail =>
         val firstSet = curFirst.getOrElse(nterm, Set())
         if (firstSet.contains(Epsilon)) {
-          // TODO: Remove epsilon?
           val tailFirst = getFirst(tail, curFirst)
           firstSet ++ tailFirst
         } else {
@@ -55,16 +54,19 @@ object ParserCalculator {
         (entry, index) <- rule.zipWithIndex
         if entry.isInstanceOf[NonTerminal]
         curNterm = entry.asInstanceOf[NonTerminal]
-        curFollow = answer.getOrElse(curNterm, Set())
+        prev = answer.getOrElse(curNterm, Set())
         ruleReminder = rule.slice(index + 1, rule.size)
         curFirst = getFirst(ruleReminder, first)
       } {
-        val prev = answer.getOrElse(curNterm, Set())
         for {firstEntry <- curFirst} {
           firstEntry match {
-            case Epsilon =>
-            case term@Terminal(name) =>
+            case Epsilon => ()
+            case term@Terminal(_) =>
               val curFollow = answer.getOrElse(curNterm, Set())
+              if (term == Terminal("LEFTPAR")) {
+                println(s"$curFirst")
+                println(s"$nterm\n $rule\n")
+              }
               answer.update(curNterm, curFollow + term)
           }
         }
