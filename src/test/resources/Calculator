@@ -1,0 +1,84 @@
+header {
+package generated
+}
+
+tokens [
+    PLUS = "[+]";
+    MINUS = "[-]";
+    MUL = "[*]";
+    POW = "^";
+    LEFT = "[(]";
+    RIGHT = "[)]";
+    NUMBER = "[1-9][0-9]*";
+    WS = "[ \t\n\r]+"
+]
+
+skip [
+    WS;
+]
+
+start = E;
+
+rules [
+    E() -> value: Integer ::= t=T() eprime=EPRIME(t)
+    {
+        value = eprime
+    }
+    ;;
+
+    EPRIME(acc: Integer) -> value: Integer ::= plus=PLUS t=T()
+    {
+        val down = acc + t
+    }
+    eprime=EPRIME(down)
+    {
+        value = eprime
+    }
+
+    | minus=MINUS t=T()
+    {
+      val down = acc - t
+    }
+    eprime=EPRIME(down)
+    {
+      value = eprime
+    }
+
+    | eps
+    {
+        value = acc
+    }
+    ;;
+
+    T() -> value: Integer ::= f=F() tprime=TPRIME(f)
+    {
+        value = tprime
+    }
+    ;;
+
+    TPRIME(acc: Integer) -> value: Integer ::= mul=MUL f=F()
+    {
+        val down = acc * f
+    }
+    tprime=TPRIME(down)
+    {
+        value = tprime
+    }
+    
+    | eps
+    {
+        value = acc
+    }
+    ;;
+
+    F() -> value: Integer ::= numberstring=NUMBER
+    {
+        value = Integer.parseInt(numberstring.text)
+    }
+
+    | left=LEFT e=E() right=RIGHT
+    {
+        value = e
+    }
+    ;;
+]

@@ -56,6 +56,7 @@ class Generator(pathToGrammarFile: Path, pathToScalaDir: Path) {
 
     val first = ParserCalculator.calculateFirst(theoryRules)
     val follow = ParserCalculator.calculateFollow(theoryRules, startRule, first)
+
     val parserString = ParserGenerator.generateParser(rulesHolder, grammarName, first, follow, header)
     CodeWriter.writeCode(pathToScalaDir.resolve(s"${grammarName}Parser.scala"), parserString)
   }

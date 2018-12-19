@@ -17,5 +17,5 @@ start = LIST;
 
 rules [
     LIST() -> u: Unit ::= nil=NIL {println("Empty list")} |
-        {println("Parsing head")} h=WORD {println(s"Head is $h")} cons=CONS {println("Cons parsed")} l=LIST() {println("Parser list")};;
+        {println("Parsing head")} h=WORD {println(s"Head is ${h.text}")} cons=CONS {println("Cons parsed")} l=LIST() {println("Parser list")};;
 ]

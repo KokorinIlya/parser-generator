@@ -1,8 +1,8 @@
 package test
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Path, Paths}
 
-import generated.{ListDescriptionLexer, ListDescriptionParser, ListLengthLexer, ListLengthParser}
+import generated._
 import generators.Generator
 import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 import java.io.IOException
@@ -17,7 +17,7 @@ class ParserGeneratorTest extends FlatSpec with BeforeAndAfterAll {
     Files.walkFileTree(Paths.get("src/test/scala/generated"), new ParserGeneratorTest.TempDirectoryCleaner)
   }
 
-  "ParserGenerator" should "parse list descriptions and describe lists" in {
+  /*"ParserGenerator" should "parse list descriptions and describe lists" in {
     val gen = new Generator(
       Paths.get("src/test/resources/ListDescription"),
       Paths.get("src/test/scala/generated")
@@ -40,6 +40,19 @@ class ParserGeneratorTest extends FlatSpec with BeforeAndAfterAll {
     val parser = new ListLengthParser(lexer)
     val res = parser.parseLIST("Hello")
     assert(res == 4)
+  }*/
+
+  "ParserGenerator" should "calculate numbers" in {
+    val gen = new Generator(
+      Paths.get("src/test/resources/Calculator"),
+      Paths.get("src/test/scala/generated")
+    )
+    gen.generate()
+    val stream = Files.newInputStream(Paths.get("src/test/resources/CalcExample"))
+    val lexer = new CalculatorLexer(stream)
+    val parser = new CalculatorParser(lexer)
+    val res = parser.parseE()
+    println(res)
   }
 }
 
