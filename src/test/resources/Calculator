@@ -6,7 +6,7 @@ tokens [
     PLUS = "[+]";
     MINUS = "[-]";
     MUL = "[*]";
-    POW = "^";
+    POW = "[$]";
     LEFT = "[(]";
     RIGHT = "[)]";
     NUMBER = "[1-9][0-9]*";
@@ -50,21 +50,42 @@ rules [
     }
     ;;
 
-    T() -> value: Integer ::= f=F() tprime=TPRIME(f)
+    T() -> value: Integer ::= p=P() tprime=TPRIME(p)
     {
         value = tprime
     }
     ;;
 
-    TPRIME(acc: Integer) -> value: Integer ::= mul=MUL f=F()
+    TPRIME(acc: Integer) -> value: Integer ::= mul=MUL p=P()
     {
-        val down = acc * f
+        val down = acc * p
     }
     tprime=TPRIME(down)
     {
         value = tprime
     }
-    
+
+    | eps
+    {
+        value = acc
+    }
+    ;;
+
+    P() -> value: Integer ::= f=F() pprime=PPRIME(f)
+    {
+        value = pprime
+    }
+    ;;
+
+    PPRIME(acc: Integer) -> value: Integer ::= pow=POW f=F()
+    {
+        val down = Math.pow(f.doubleValue(), acc.doubleValue()).intValue()
+    }
+    pprime=PPRIME(down)
+    {
+        value = pprime
+    }
+
     | eps
     {
         value = acc
