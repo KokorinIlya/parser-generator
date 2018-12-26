@@ -1,3 +1,6 @@
+# parser-generator
+Simple parser and lexer generator for LL(1) grammars
+
 **Table of contents**
 
 <!--- TOC -->
@@ -6,9 +9,6 @@
  * [Grammar description](#grammar-description)
 
 <!--- END_TOC -->
-
-# parser-generator
-Simple parser and lexer generator for LL(1) grammars
 
 ## Lexer and parser generation
 
