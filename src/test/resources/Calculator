@@ -6,7 +6,7 @@ tokens [
     PLUS = "[+]";
     MINUS = "[-]";
     MUL = "[*]";
-    POW = "[$]";
+    POW = "[\\^]";
     LEFT = "[(]";
     RIGHT = "[)]";
     NUMBER = "[1-9][0-9]*";
@@ -77,13 +77,9 @@ rules [
     }
     ;;
 
-    PPRIME(acc: Integer) -> value: Integer ::= pow=POW f=F()
+    PPRIME(acc: Integer) -> value: Integer ::= pow=POW f=F() pprime=PPRIME(f)
     {
-        val down = Math.pow(f.doubleValue(), acc.doubleValue()).intValue()
-    }
-    pprime=PPRIME(down)
-    {
-        value = pprime
+        value = Math.pow(acc.doubleValue(), pprime.doubleValue()).intValue()
     }
 
     | eps

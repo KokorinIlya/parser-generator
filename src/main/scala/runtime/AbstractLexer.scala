@@ -11,6 +11,7 @@ trait AbstractLexer[T <: TextHolder] {
   protected val inputStream: InputStream
 
   private val scanner = new Scanner(inputStream)
+  scanner.useDelimiter("")
 
   protected val nameToRegex: List[(String, Pattern)]
 
