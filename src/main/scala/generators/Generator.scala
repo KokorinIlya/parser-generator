@@ -57,6 +57,20 @@ class Generator(pathToGrammarFile: Path, pathToScalaDir: Path) {
     val first = ParserCalculator.calculateFirst(theoryRules)
     val follow = ParserCalculator.calculateFollow(theoryRules, startRule, first)
 
+    val rulesForNterm: Map[NonTerminal, List[List[Entry]]] = theoryRules.groupBy { case (nterm, entries) =>
+      nterm
+    }.map { case (nterm, rules) =>
+      val rulesWithoutNterm = rules.map { case (_, rule) =>
+        rule
+      }
+      nterm -> rulesWithoutNterm
+    }
+
+    val isLL1 = GrammarChecker.checkLL1(rulesForNterm, first, follow)
+    if (!isLL1) {
+      throw new IllegalArgumentException("Grammar is not LL(1)")
+    }
+
     val parserString = ParserGenerator.generateParser(rulesHolder, grammarName, first, follow, header)
     CodeWriter.writeCode(pathToScalaDir.resolve(s"${grammarName}Parser.scala"), parserString)
   }
