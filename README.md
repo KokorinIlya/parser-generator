@@ -1,3 +1,12 @@
+**Table of contents**
+
+<!--- TOC -->
+
+ * [Lexer and parser generation](#lexer-and-parser-generation)
+ * [Grammar description](#grammar-description)
+
+<!--- END_TOC -->
+
 # parser-generator
 Simple parser and lexer generator for LL(1) grammars
 
@@ -13,7 +22,7 @@ val gen = new Generator(
 gen.generate()
 ```
 
-Where ```pathToGrammar``` is a path to file with grammar description (see * [Grammar description](#grammar-description) section for details), and ```pathToDirectoryForCode``` is a path do directory, where generated code (lexer, parser and tokens description) will be placed.
+Where ```pathToGrammar``` is a path to file with grammar description (see [Grammar description](#grammar-description) section for details), and ```pathToDirectoryForCode``` is a path do directory, where generated code (lexer, parser and tokens description) will be placed.
 
 ## Grammar description
 
