@@ -17,31 +17,6 @@ class ParserGeneratorTest extends FlatSpec with BeforeAndAfterAll {
     Files.walkFileTree(Paths.get("src/test/scala/generated"), new ParserGeneratorTest.TempDirectoryCleaner)
   }
 
-  /*"ParserGenerator" should "parse list descriptions and describe lists" in {
-    val gen = new Generator(
-      Paths.get("src/test/resources/ListDescription"),
-      Paths.get("src/test/scala/generated")
-    )
-    gen.generate()
-    val stream = Files.newInputStream(Paths.get("src/test/resources/ListExample"))
-    val lexer = new ListDescriptionLexer(stream)
-    val parser = new ListDescriptionParser(lexer)
-    parser.parseLIST()
-  }
-
-  it should "parse and get list length" in {
-    val gen = new Generator(
-      Paths.get("src/test/resources/ListLength"),
-      Paths.get("src/test/scala/generated")
-    )
-    gen.generate()
-    val stream = Files.newInputStream(Paths.get("src/test/resources/ListExample"))
-    val lexer = new ListLengthLexer(stream)
-    val parser = new ListLengthParser(lexer)
-    val res = parser.parseLIST("Hello")
-    assert(res == 4)
-  }*/
-
   "ParserGenerator" should "calculate numbers" in {
     val gen = new Generator(
       Paths.get("src/test/resources/Calculator"),
